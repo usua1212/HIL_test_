@@ -1,5 +1,3 @@
-from bookticket.models.helpers import Controller
-
 
 class TicketError(Exception):
     def __init__(self, message):
