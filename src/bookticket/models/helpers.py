@@ -65,6 +65,9 @@ class Controller:
 
     def show_free_tickets(self, route_id):
         current_date = datetime.now()
+        if not self.routes[route_id].departure_time > current_date:
+            print("Sorry, there are no seats available on this bus")
+            return
         booked_seats = [ticket.seat_number for ticket in self.tickets if ticket.route_id == route_id]
         print("Tickets have been booked:", booked_seats)
         max_seats = self.routes[route_id].bus.max_seats
