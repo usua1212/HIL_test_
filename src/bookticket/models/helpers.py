@@ -2,7 +2,7 @@ import uuid
 from bookticket.models.bus import Bus
 from bookticket.models.route import Route
 from bookticket.models.ticket import Ticket
-from bookticket.models.ticketerror import TicketError, BusAlreadyDepartedError, NoAvailableSeatsError
+from bookticket.models.ticketerror import BusAlreadyDepartedError, NoAvailableSeatsError
 from datetime import datetime, timedelta
 
 
@@ -66,7 +66,8 @@ class Controller:
     def show_free_tickets(self, route_id):
         try:
             route_id = int(route_id)
-        except ValueError
+        except ValueError:
+            raise ValueError('Invalid route ID')
         current_date = datetime.now()
         if not self.routes[route_id].departure_time > current_date:
             raise BusAlreadyDepartedError('The departure time of the route has already passed.')
@@ -78,7 +79,10 @@ class Controller:
         print("Free places", sorted(avail_seats))
         if not avail_seats:
             raise NoAvailableSeatsError("There are no available tickets left for this route.")
-        num_seat = int(input("How many seats do you want to book: "))
+        try:
+            num_seat = int(input("How many seats do you want to book: "))
+        except ValueError:
+            raise ValueError('Invalid number of seats entered.')
         if num_seat == 1:
             self.book_one_seat(route_id, booked_seats)
         elif num_seat > 1:
@@ -134,8 +138,7 @@ class Controller:
     def book_one_seat(self, route_id, booked_seats):
         seat_num = int(input("Enter the seat number you want to book: "))
         if seat_num in booked_seats:
-            print("Sorry, this seat has already been booked")
-            return
+            raise NoAvailableSeatsError("There are no available tickets left for this route.")
         ticket_idf = uuid.uuid4()
         ticket = Ticket(len(self.tickets), route_id, seat_num, ticket_idf)
         self.tickets.append(ticket)

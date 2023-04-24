@@ -21,5 +21,5 @@ while True:
         elif choice == '3':
             controller.search_routes()
     except TicketError as e:
-        print (e)
+        print(e)
 

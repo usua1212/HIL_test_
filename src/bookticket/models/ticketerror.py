@@ -12,7 +12,8 @@ class NoAvailableSeatsError(TicketError):
     def __init__(self, message):
         super().__init__(message)
 
-class InvalidRouteIdError(ValueError)
+
+class InvalidRouteIdError(ValueError):
     def __init__(self, message):
         super().__init__(message)
 
