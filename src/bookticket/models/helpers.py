@@ -1,3 +1,4 @@
+import csv
 import uuid
 from bookticket.models.bus import Bus
 from bookticket.models.route import Route
@@ -24,39 +25,50 @@ class Controller:
         return cls._instance
 
     def __init__(self):
-        self.buses = [
-            Bus(0, 'Mercedes-Benz Sprinter', 'AA1234AA', 20),
-            Bus(1, 'Neoplan N 1116', 'AA2345AA', 57),
-            Bus(2, 'Setra', 'AA3456AA', 30),
-            Bus(3, 'MAN', 'AA4567AA', 50)
-        ]
-        today = datetime.today()
-        start = datetime(today.year, today.month, today.day)
-        monday_start = start - timedelta(days=today.weekday())
-        self.routes = [
-                Route(0, monday_start + timedelta(days=0, hours=6, minutes=25), 'Odesa', self.get_bus_by_id(1)),
-                Route(1, monday_start + timedelta(days=4, hours=8, minutes=40), 'Poltava', self.get_bus_by_id(1)),
-                Route(2, monday_start + timedelta(days=1, hours=14, minutes=15), 'Zhytomyr', self.get_bus_by_id(0)),
-                Route(3, monday_start + timedelta(days=2, hours=12, minutes=0), 'Lviv', self.get_bus_by_id(2)),
-                Route(4, monday_start + timedelta(days=4, hours=18, minutes=10), 'Kyiv', self.get_bus_by_id(3)),
-                Route(5, monday_start + timedelta(days=3, hours=5, minutes=15), 'Chernihiv', self.get_bus_by_id(0)),
-                Route(6, monday_start + timedelta(days=5, hours=11, minutes=50), 'Rivne', self.get_bus_by_id(3)),
-                Route(7, monday_start + timedelta(days=2, hours=20, minutes=18), 'Kharkiv', self.get_bus_by_id(1)),
-                Route(8, monday_start + timedelta(days=4, hours=15, minutes=20), 'Poltava', self.get_bus_by_id(2)),
-                Route(9, monday_start + timedelta(days=6, hours=16, minutes=20), 'Ternopil', self.get_bus_by_id(0))
-                ]
-        self.tickets = [
-                Ticket(0, self.routes[0].id, 1, uuid.uuid4()),
-                Ticket(1, self.routes[0].id, 2, uuid.uuid4()),
-                Ticket(2, self.routes[0].id, 3, uuid.uuid4()),
-                Ticket(3, self.routes[1].id, 24, uuid.uuid4()),
-                Ticket(4, self.routes[1].id, 1, uuid.uuid4()),
-                Ticket(5, self.routes[2].id, 2, uuid.uuid4()),
-                Ticket(6, self.routes[2].id, 3, uuid.uuid4()),
-                Ticket(7, self.routes[3].id, 22, uuid.uuid4()),
-                Ticket(8, self.routes[9].id, 8, uuid.uuid4()),
-                Ticket(9, self.routes[9].id, 15, uuid.uuid4())
-                ]
+        self.buses = self.get_buses_from_file('bookticket/data/bus.csv')
+        self.routes = self.get_routes_from_file('bookticket/data/route.csv')
+        self.tickets = self.get_tickets_from_file('bookticket/data/ticket.csv')
+
+    def get_buses_from_file(self, filename):
+        buses = []
+        with open(filename, newline='') as csvfile:
+            reader = csv.DictReader(csvfile)
+            for row in reader:
+                idb = int(row['idb'])
+                model = row['model']
+                car_number = row['car_number']
+                max_seats = int(row['max_seats'])
+                bus = Bus(idb, model, car_number, max_seats)
+                buses.append(bus)
+        return buses
+
+    def get_routes_from_file(self, filename):
+        routes = []
+        with open(filename, newline='') as csvfile:
+            reader = csv.DictReader(csvfile)
+            for row in reader:
+                idr = int(row['idr'])
+                days = int(row['days'])
+                hours = int(row['hours'])
+                minutes = int(row['minutes'])
+                destination = row['destination']
+                bus_id = int(row['bus'])
+                route = Route(idr, days, hours, minutes, destination, bus_id)
+                routes.append(route)
+        return routes
+
+    def get_tickets_from_file(self, filename):
+        tickets = []
+        with open(filename, newline='') as csvfile:
+            reader = csv.DictReader(csvfile)
+            for row in reader:
+                idt = int(row['idt'])
+                route_id = int(row['route_id'])
+                seat_number = int(row['seat_number'])
+                ticket_number = row['ticket_number']
+                ticket = Ticket(idt, route_id, seat_number, ticket_number)
+                tickets.append(ticket)
+        return tickets
 
     @wish_decorator
     def show_routes(self):

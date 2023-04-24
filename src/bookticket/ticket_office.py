@@ -17,9 +17,11 @@ while True:
         elif choice == '2':
             controller.show_routes()
             route_id = input('Enter the route number: ')
-            controller.show_free_tickets(int(route_id))
+            controller.show_free_tickets(route_id)
         elif choice == '3':
             controller.search_routes()
     except TicketError as e:
         print(e)
+    finally:
+        print('Program terminated.')
 
