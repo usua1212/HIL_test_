@@ -13,6 +13,7 @@ def wish_decorator(func):
         result = func(*args, **kwargs)
         print("Have a nice day!")
         return result
+
     return wrapper
 
 
@@ -25,9 +26,9 @@ class Controller:
         return cls._instance
 
     def __init__(self):
-        self.buses = self.get_buses_from_file('bookticket/data/bus.csv')
-        self.routes = self.get_routes_from_file('bookticket/data/route.csv')
-        self.tickets = self.get_tickets_from_file('bookticket/data/ticket.csv')
+        self.buses = self.get_buses_from_file('data\\bus.csv')
+        self.routes = self.get_routes_from_file('data\\route.csv')
+        self.tickets = self.get_tickets_from_file('data\\ticket.csv')
 
     def get_buses_from_file(self, filename):
         buses = []
@@ -53,7 +54,8 @@ class Controller:
                 minutes = int(row['minutes'])
                 destination = row['destination']
                 bus_id = int(row['bus'])
-                route = Route(idr, days, hours, minutes, destination, bus_id)
+                bus = next((b for b in self.buses if b.id == bus_id), None)
+                route = Route(idr, days, hours, minutes, destination, bus)
                 routes.append(route)
         return routes
 
@@ -69,6 +71,12 @@ class Controller:
                 ticket = Ticket(idt, route_id, seat_number, ticket_number)
                 tickets.append(ticket)
         return tickets
+
+    def save_tickets_to_file(self, tickets):
+        with open('data\\ticket.csv', mode='a', newline='') as csvfile:
+            writer = csv.writer(csvfile)
+            for ticket in tickets:
+                writer.writerow([ticket.id, ticket.route_id, ticket.seat_number, ticket.ticket_number])
 
     @wish_decorator
     def show_routes(self):
@@ -110,7 +118,7 @@ class Controller:
             item
             for item in self.routes
             if item.departure_time.ctime().startswith(weekday.title())
-            and item.destination.lower().startswith(city.lower())
+               and item.destination.lower().startswith(city.lower())
         ]
         if not matched_routes:
             print("No routes found")
@@ -154,6 +162,7 @@ class Controller:
         ticket_idf = uuid.uuid4()
         ticket = Ticket(len(self.tickets), route_id, seat_num, ticket_idf)
         self.tickets.append(ticket)
+        self.save_tickets_to_file([ticket])
         print("The tickets are booked:", ticket)
 
     def book_multiple_seats(self, route_id, num_seat, max_seats, avail_seats):
@@ -175,10 +184,11 @@ class Controller:
             for seat in adjacent_seats:
                 ticket_id = uuid.uuid4()
                 ticket_ids.append(ticket_id)
-                ticket = Ticket(self.tickets, route_id, seat, ticket_id)
+                ticket = Ticket(len(self.tickets), route_id, seat, ticket_id)
                 self.tickets.append(ticket)
-            ticket_strings = [ticket for ticket in self.tickets[-num_seat:]]
-            print("The tickets are booked:", ticket_strings)
+            self.save_tickets_to_file(self.tickets)
+            ticket_strings = [str(ticket) for ticket in self.tickets[-num_seat:]]
+            print("The tickets are booked:", ", ".join(ticket_strings))
         else:
             print("There are not enough adjacent seats available")
 
@@ -199,4 +209,3 @@ class Controller:
             if ticket.id == ticket_id:
                 return ticket
         return None
-
