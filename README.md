@@ -1,2 +1,0 @@
-# flaskr-tutorial
-flaskr-tutorial
